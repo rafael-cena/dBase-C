@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <conio2.h>
 #include <time.h>
+#include <string.h>
 
 #include "tad.h"
 #include "strdin.h"
@@ -30,26 +31,38 @@ void tela (int *x, int *y, int *yBar, char dir[], StrDin *inst) {
 	printf("\n\t\t\tEnter dBASE command");
 }
 
-void telaCampos (int *x, int *y, int *yBar, char dir[], StrDin *inst, StrDin *nome) {
-	gotoxy(*x, *y);
-	printf("\tNome Campo \tTipo \t\t Tamanho \t Dec"); *y++;
-	gotoxy(*x, *y);
-	printf("==================================================="); *y++;
+void telaCampos (int *x, int *y, char dir[], StrDin *inst, char *nome) {
+	*x+=4;
+	gotoxy(*x, *y); printf("Field Name"); *x+=12;
+	gotoxy(*x, *y); printf("Type"); *x+=10;
+	gotoxy(*x, *y); printf("Width"); *x+=6;
+	gotoxy(*x, *y); printf("Dec"); *y+=1;
+	*x=54;
+	while (*x < 86) {
+		gotoxy(*x, *y); printf("%c", 205); *x+=1;
+	}
+	*y+=1;
+	*x=50;
 	
-	*yBar = *y+4;
-	gotoxy(*x, *yBar);
+	gotoxy(*x, 14);
 	textcolor(0);
 	textbackground(8);
-	exibe(inst);
-	printf("\t||<%s>||", dir);
-	exibe(nome);
+	while (*x < 86) {
+		gotoxy(*x, 14); printf(" "); *x+=1;
+	}
+	*x=50;
+	gotoxy(*x, 14); exibe(inst); *x+=14;
+	printf("\t\t||<%s>||%s", dir, nome);
+	*x+=strlen(nome);
+	printf("      ");
+	
 	
 	textcolor(15);
 	textbackground(0);
-	printf("\n\t\t\tInsira o campo");
+	gotoxy(*x, 15); printf("Enter the field");
 }
 
-void instruction (StrDin **str, int *key, TpUnd **unidade, StrDin **nome) {
+void instruction (StrDin **str, int *key, TpUnd **unidade, char **nome) {
 	StrDin *aux, *set_default_to_c, *set_default_to_d, *create, *dir, *quit, *use, *list_structure, *append, *list, *clear, *go_to, *display, *edit, *delete_reg, *recall, *set_deleted, *pack, *zap;
 	int i=0;
 	
@@ -107,77 +120,101 @@ void instruction (StrDin **str, int *key, TpUnd **unidade, StrDin **nome) {
 	init(&zap);
 	insere(&zap, 'Z'); insere(&zap, 'A'); insere(&zap, 'P');
 	
-	if (iguais(str, set_default_to_c)) {
+	if (iguais(*str, set_default_to_c)) {
 		*key = 0;
 		if (strcmp((*unidade)->und, "D:") == 0)
 			*unidade = (*unidade)->ant;
 	}
-	else if (iguais(str, set_default_to_d)) {
+	else if (iguais(*str, set_default_to_d)) {
 		*key = 0;
 		if (strcmp((*unidade)->und, "C:") == 0)
 			*unidade = (*unidade)->prox;
 	}
-	else if (buscaSubs(str, create, &i)) {
+	else if (buscaSubs(*str, create, &i)) {
 		if (i == 0) {
-			aux = *str;
-			printf("\n");
-			exibe(aux);
-			getch();
-			for (i=0; i<7; i++) {
-				printf("\n%c -> ", aux->letra);
-				aux=aux->prox;
-			}
-			copia(aux, &*nome);
-			exibe(*nome);
-			getch();
-			reinicia(&*str);
-			copia(create, &*str);
-			*key = 1;
+			*nome = toString(*str, 7);
+			remover(&*str, 50, 7);
 		}
 		else *key = -1;
 	}
-	else if (iguais(str, dir)) *key = 2;
-	else if (iguais(str, quit)) *key = 3;
-	else if (iguais(str, use)) *key = 4;
-	else if (iguais(str, list_structure)) *key = 5;
-	else if (iguais(str, append)) *key = 6;
-	else if (iguais(str, list)) *key = 7;
-	else if (iguais(str, clear)) *key = 8;
-	else if (iguais(str, go_to)) *key = 9;
-	else if (iguais(str, display)) *key = 10;
-	else if (iguais(str, edit)) *key = 11;
-	else if (iguais(str, delete_reg)) *key = 12;
-	else if (iguais(str, recall)) *key = 13;
-	else if (iguais(str, set_deleted)) *key = 14;
-	else if (iguais(str, pack)) *key = 15;
-	else if (iguais(str, zap)) *key = 16;
+	else if (iguais(*str, dir)) *key = 2;
+	else if (iguais(*str, quit)) *key = 3;
+	else if (iguais(*str, use)) *key = 4;
+	else if (iguais(*str, list_structure)) *key = 5;
+	else if (iguais(*str, append)) *key = 6;
+	else if (iguais(*str, list)) *key = 7;
+	else if (iguais(*str, clear)) *key = 8;
+	else if (iguais(*str, go_to)) *key = 9;
+	else if (iguais(*str, display)) *key = 10;
+	else if (iguais(*str, edit)) *key = 11;
+	else if (iguais(*str, delete_reg)) *key = 12;
+	else if (iguais(*str, recall)) *key = 13;
+	else if (iguais(*str, set_deleted)) *key = 14;
+	else if (iguais(*str, pack)) *key = 15;
+	else if (iguais(*str, zap)) *key = 16;
 	else *key = -1;
 
 }
 
-void inserirCampos (TpCampos **campos, TpUnd *unidade, StrDin *str, StrDin *nome) {
+void inserirCampos (TpCampos **campos, TpUnd *unidade, StrDin *str, char *nome) {
 	int x, y, yBar;
+	char c, *strAux;
+	StrDin *aux, *nC;
+	init(&aux);
 	
-	x=50; y=1; yBar=y+4;
-	telaCampos(&x, &y, &yBar, unidade->und, str, nome);
+	x=60; y=1; yBar=y+8;
+	telaCampos(&x, &y, unidade->und, str, nome);
+	x=54;
+	init(&nC);
+	
+	gotoxy(x, y); printf("%d", y-2); x+=12;
+	gotoxy(x, y);
+	while (c != '\r' && c != 27) {
+		insere(&nC, c);
+		c = toupper(getche());
+	}
+	x=76;
+	while (nC != NULL) {
+		strcpy((*campos)->nomeCampo, toString(nC, 0));
+		gotoxy(x, y);
+		while (c != '\r' && c != 27) {
+			insere(&aux, c);
+			c = toupper(getche());
+		}
+		strAux = toString(aux, 0);
+		(*campos)->tipo = getTipo(strAux);
+		x=86;
+		gotoxy(x,y); scanf("%d", (*campos)->tamanho); x=92;
+		if ((*campos)->tipo == 'N') {
+			gotoxy(x,y); scanf("%d", (*campos)->dec);
+		}
+		else {
+			gotoxy(x,y); printf("0"); (*campos)->dec = 0;
+		}
+		x=60; y++;
+		
+		reinicia(&nC);
+		gotoxy(x, y); printf("%d", y-2); x=64;
+		gotoxy(x, y); 
+		while (c != '\r' && c != 27) {
+			insere(&nC, c);
+			c = toupper(getche());
+		}
+		x=76;
+	}
 }
 
-void novoArq (TpUnd **unidade, StrDin *str, StrDin *nome) {
+void novoArq (TpUnd **unidade, StrDin *str, char *nome) {
 	TpArq *arq;
 	TpStatus *status;
 	TpCampos *campos;
-	struct tm *data_hora_atual;
-	time_t segundos;
-	
-	time(&segundos);
-	data_hora_atual = localtime(&segundos);
 	
 	initArq(&arq);
 	initSt(&status);
 	
-	
-	strcpy(arq->data, ("%d/%d/%d", data_hora_atual->tm_mday, data_hora_atual->tm_mon+1, data_hora_atual->tm_year+1900));
-	strcpy(arq->hora, ("%d:%d", data_hora_atual->tm_hour, data_hora_atual->tm_min));
+	strcpy(arq->nome, nome);
+	strcpy(arq->data, getData());
+	strcpy(arq->hora, getHora());
 	arq->status = status;
 	inserirCampos(&campos, *unidade, str, nome);
 	arq->campos = campos;
@@ -188,11 +225,12 @@ void novoArq (TpUnd **unidade, StrDin *str, StrDin *nome) {
 void execute () {
 	int key, x, y, yBar;
 	char c;
-	StrDin *inst, *nome;
+	StrDin *inst;
+	char *nome;
 	TpUnd *unidade;
 	
 	initUnd(&unidade);
-	init(&inst); init(&nome);
+	init(&inst);
 	inserirUnd(&unidade, "D:");
 	inserirUnd(&unidade, "C:");
 	
@@ -210,7 +248,7 @@ void execute () {
 			insere(&inst, c);
 			c = toupper(getche());
 		}
-		instruction(inst, &key, &unidade, &nome);
+		instruction(&inst, &key, &unidade, &nome);
 		y++;
 		
 		switch (key) {

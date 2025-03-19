@@ -161,3 +161,23 @@ char buscaSubs (StrDin *str, StrDin *subs, int *local) {
 	}
 	return 1;
 }
+
+char* toString (StrDin *str, int start) {
+	char *string;
+	int i;
+	
+	while (start > 0) {
+		str = str->prox;
+		start--;
+	}
+	
+	string = (char*)malloc(sizeof(tamanho(str)+1));
+	
+	for (i=0; str != NULL; i++) {
+		string[i] = str->letra;
+		str = str->prox;
+	}
+	string[i] = '\0';
+	
+	return string;
+}
