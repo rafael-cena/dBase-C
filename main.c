@@ -5,15 +5,16 @@
 #include <string.h>
 
 #include "tad.h"
-#include "strdin.h"
 
-void defaultInst (StrDin **str) {
-	reinicia(&*str);
-	
-	insere(&*str, 'C'); insere(&*str, 'o'); insere(&*str, 'm'); insere(&*str, 'm'); insere(&*str, 'a'); insere(&*str, 'n'); insere(&*str, 'd'); insere(&*str, ' '); insere(&*str, 'L'); insere(&*str, 'i'); insere(&*str, 'n'); insere(&*str, 'e'); 
+void defaultInst (char **str) {
+	strcpy(*str, "Command Line");
 }
 
-void tela (int *x, int *y, int *yBar, char dir[], StrDin *inst) {
+void reinicia (char **str) {
+	strcpy(*str, " ");
+}
+
+void tela (int *x, int *y, int *yBar, char dir[], char inst[]) {
 	gotoxy(*x, *y);
 	printf(".");
 	gotoxy(*x, *yBar);
@@ -23,22 +24,21 @@ void tela (int *x, int *y, int *yBar, char dir[], StrDin *inst) {
 	gotoxy(1, *yBar);
 	textcolor(0);
 	textbackground(8);
-	exibe(inst);
-	printf("\t||<%s>||\t||Rec: none", dir);
+	printf("%s\t||<%s>||\t||Rec: none", inst, dir);
 	
 	textcolor(15);
 	textbackground(0);
 	printf("\n\t\t\tEnter dBASE command");
 }
 
-void telaCampos (int *x, int *y, char dir[], StrDin *inst, char *nome) {
+void telaCampos (int *x, int *y, char dir[], char inst[], char *nome) {
 	*x+=4;
-	gotoxy(*x, *y); printf("Field Name"); *x+=12;
-	gotoxy(*x, *y); printf("Type"); *x+=10;
-	gotoxy(*x, *y); printf("Width"); *x+=6;
+	gotoxy(*x, *y); printf("Field Name"); *x=72;
+	gotoxy(*x, *y); printf("Type"); *x=80;
+	gotoxy(*x, *y); printf("Width"); *x=88;
 	gotoxy(*x, *y); printf("Dec"); *y+=1;
 	*x=54;
-	while (*x < 86) {
+	while (*x < 90) {
 		gotoxy(*x, *y); printf("%c", 205); *x+=1;
 	}
 	*y+=1;
@@ -51,160 +51,114 @@ void telaCampos (int *x, int *y, char dir[], StrDin *inst, char *nome) {
 		gotoxy(*x, 14); printf(" "); *x+=1;
 	}
 	*x=50;
-	gotoxy(*x, 14); exibe(inst); *x+=14;
-	printf("\t\t||<%s>||%s", dir, nome);
+	gotoxy(*x, 14); *x+=14;
+	printf("%s\t\t||<%s>||%s", inst, dir, nome);
 	*x+=strlen(nome);
 	printf("      ");
-	
 	
 	textcolor(15);
 	textbackground(0);
 	gotoxy(*x, 15); printf("Enter the field");
 }
 
-void instruction (StrDin **str, int *key, TpUnd **unidade, char **nome) {
-	StrDin *aux, *set_default_to_c, *set_default_to_d, *create, *dir, *quit, *use, *list_structure, *append, *list, *clear, *go_to, *display, *edit, *delete_reg, *recall, *set_deleted, *pack, *zap;
+void clearCampos (int x, int y, int xMax, int yMax) {
+	int i = y;
+	while (x < xMax) {
+		while (y < yMax) {
+			gotoxy(x, y);
+			printf(" ");
+			y++;
+		}
+		x++;
+		y = i;
+	}
+}
+
+int buscaSubs(char str[], char inst[]) {
+	int i;
+	for (i=0; str[i] != '\0' && inst[i] != '\0' && i < strlen(inst); i++)
+		if (str[i] != inst[i])
+			return -1;
+	
+	if (inst[i] == '\0' && str[i] == ' ' && i == strlen(inst))
+		return 0;
+}
+
+void instruction (char *str, int *key, TpUnd **unidade, char **nome) {
+	char *aux;
 	int i=0;
 	
-	init(&set_default_to_c);
-	insere(&set_default_to_c, 'S'); insere(&set_default_to_c, 'E'); insere(&set_default_to_c, 'T'); insere(&set_default_to_c, ' '); insere(&set_default_to_c, 'D'); insere(&set_default_to_c, 'E'); insere(&set_default_to_c, 'F'); insere(&set_default_to_c, 'A'); insere(&set_default_to_c, 'U'); insere(&set_default_to_c, 'L'); insere(&set_default_to_c, 'T'); insere(&set_default_to_c, ' '); insere(&set_default_to_c, 'T'); insere(&set_default_to_c, 'O'); insere(&set_default_to_c, ' '); insere(&set_default_to_c, 'C'); insere(&set_default_to_c, ':'); 
-	
-	init(&set_default_to_d);
-	insere(&set_default_to_d, 'S'); insere(&set_default_to_d, 'E'); insere(&set_default_to_d, 'T'); insere(&set_default_to_d, ' '); insere(&set_default_to_d, 'D'); insere(&set_default_to_d, 'E'); insere(&set_default_to_d, 'F'); insere(&set_default_to_d, 'A'); insere(&set_default_to_d, 'U'); insere(&set_default_to_d, 'L'); insere(&set_default_to_d, 'T'); insere(&set_default_to_d, ' '); insere(&set_default_to_d, 'T'); insere(&set_default_to_d, 'O'); insere(&set_default_to_d, ' '); insere(&set_default_to_d, 'D'); insere(&set_default_to_d, ':'); 
-		
-	init(&create);
-	insere(&create, 'C'); insere(&create, 'R'); insere(&create, 'E'); insere(&create, 'A'); insere(&create, 'T'); insere(&create, 'E');
-	
-	init(&dir);
-	insere(&dir, 'D'); insere(&dir, 'I'); insere(&dir, 'R');
-	
-	init(&quit);
-	insere(&quit, 'Q'); insere(&quit, 'U'); insere(&quit, 'I'); insere(&quit, 'T');
-	
-	init(&use);
-	insere(&use, 'U'); insere(&use, 'S'); insere(&use, 'E');
-	
-	init(&list_structure);
-	insere(&list_structure, 'L'); insere(&list_structure, 'I'); insere(&list_structure, 'S'); insere(&list_structure, 'T'); insere(&list_structure, ' '); insere(&list_structure, 'S'); insere(&list_structure, 'T'); insere(&list_structure, 'R'); insere(&list_structure, 'U'); insere(&list_structure, 'C'); insere(&list_structure, 'T'); insere(&list_structure, 'U'); insere(&list_structure, 'R'); insere(&list_structure, 'E');
-	
-	init(&append);
-	insere(&append, 'A'); insere(&append, 'P'); insere(&append, 'P'); insere(&append, 'E'); insere(&append, 'N'); insere(&append, 'D');
-	
-	init(&list);
-	insere(&list, 'L'); insere(&list, 'I'); insere(&list, 'S'); insere(&list, 'T');
-	
-	init(&clear);
-	insere(&clear, 'C'); insere(&clear, 'L'); insere(&clear, 'E'); insere(&clear, 'A'); insere(&clear, 'R');
-	
-	init(&go_to);
-	insere(&go_to, 'G'); insere(&go_to, 'O'); insere(&go_to, 'T'); insere(&go_to, 'O');
-	
-	init(&display);
-	insere(&display, 'D'); insere(&display, 'I'); insere(&display, 'S'); insere(&display, 'P'); insere(&display, 'L'); insere(&display, 'A'); insere(&display, 'Y');
-	
-	init(&edit);
-	insere(&edit, 'E'); insere(&edit, 'D'); insere(&edit, 'I'); insere(&edit, 'T');
-	
-	init(&delete_reg);
-	insere(&delete_reg, 'D'); insere(&delete_reg, 'E'); insere(&delete_reg, 'L'); insere(&delete_reg, 'E'); insere(&delete_reg, 'T'); insere(&delete_reg, 'E'); 
-	
-	init(&recall);
-	insere(&recall, 'R'); insere(&recall, 'E'); insere(&recall, 'C'); insere(&recall, 'A'); insere(&recall, 'L'); insere(&recall, 'L');
-	
-	init(&set_deleted);
-	insere(&set_deleted, 'S'); insere(&set_deleted, 'E'); insere(&set_deleted, 'T'); insere(&set_deleted, ' '); insere(&set_deleted, 'D'); insere(&set_deleted, 'E'); insere(&set_deleted, 'L'); insere(&set_deleted, 'E'); insere(&set_deleted, 'T'); insere(&set_deleted, 'E'); insere(&set_deleted, 'D');
-	
-	init(&pack);
-	insere(&pack, 'P'); insere(&pack, 'A'); insere(&pack, 'C'); insere(&pack, 'K');
-	
-	init(&zap);
-	insere(&zap, 'Z'); insere(&zap, 'A'); insere(&zap, 'P');
-	
-	if (iguais(*str, set_default_to_c)) {
+	if (stricmp(str, "SET DEFAULT TO C:") == 0) {
 		*key = 0;
-		if (strcmp((*unidade)->und, "D:") == 0)
+		if (stricmp((*unidade)->und, "D:") == 0)
 			*unidade = (*unidade)->ant;
 	}
-	else if (iguais(*str, set_default_to_d)) {
+	else if (stricmp(str, "SET DEFAULT TO D:") == 0) {
 		*key = 0;
-		if (strcmp((*unidade)->und, "C:") == 0)
+		if (stricmp((*unidade)->und, "C:") == 0)
 			*unidade = (*unidade)->prox;
 	}
-	else if (buscaSubs(*str, create, &i)) {
-		if (i == 0) {
-			*nome = toString(*str, 7);
-			remover(&*str, 50, 7);
-		}
-		else *key = -1;
+	else if (buscaSubs(str, "CREATE") == 0) {
+		*key = 1;
+		// *nome = str[8-...]														Pegar o nome
+		// remover(&*str, 50, 7);													Remover o nome da instrucao, deixar 'CREATE' apenas
 	}
-	else if (iguais(*str, dir)) *key = 2;
-	else if (iguais(*str, quit)) *key = 3;
-	else if (iguais(*str, use)) *key = 4;
-	else if (iguais(*str, list_structure)) *key = 5;
-	else if (iguais(*str, append)) *key = 6;
-	else if (iguais(*str, list)) *key = 7;
-	else if (iguais(*str, clear)) *key = 8;
-	else if (iguais(*str, go_to)) *key = 9;
-	else if (iguais(*str, display)) *key = 10;
-	else if (iguais(*str, edit)) *key = 11;
-	else if (iguais(*str, delete_reg)) *key = 12;
-	else if (iguais(*str, recall)) *key = 13;
-	else if (iguais(*str, set_deleted)) *key = 14;
-	else if (iguais(*str, pack)) *key = 15;
-	else if (iguais(*str, zap)) *key = 16;
+	else if (stricmp(str, "DIR") == 0) *key = 2;
+	else if (stricmp(str, "QUIT") == 0) *key = 3;
+	else if (stricmp(str, "USE") == 0) *key = 4;
+	else if (stricmp(str, "LIST STRUCTURE") == 0) *key = 5;
+	else if (stricmp(str, "APPEND") == 0) *key = 6;
+	else if (stricmp(str, "LIST") == 0) *key = 7;
+	else if (stricmp(str, "CLEAR") == 0) *key = 8;
+	else if (stricmp(str, "GOTO") == 0) *key = 9;
+	else if (stricmp(str, "DISPLAY") == 0) *key = 10;
+	else if (stricmp(str, "EDIT") == 0) *key = 11;
+	else if (stricmp(str, "DELETE") == 0) *key = 12;
+	else if (stricmp(str, "RECALL") == 0) *key = 13;
+	else if (stricmp(str, "SET DELETED") == 0) *key = 14;
+	else if (stricmp(str, "PACK") == 0) *key = 15;
+	else if (stricmp(str, "ZAP") == 0) *key = 16;
 	else *key = -1;
 
 }
 
-void inserirCampos (TpCampos **campos, TpUnd *unidade, StrDin *str, char *nome) {
-	int x, y, yBar;
-	char c, *strAux;
-	StrDin *aux, *nC;
-	init(&aux);
+void inserirCampos (TpCampos **campos, TpUnd *unidade, char *str, char *nome) {
+	int x, y;
+	char *aux;
 	
-	x=60; y=1; yBar=y+8;
+	x=50; y=1;
 	telaCampos(&x, &y, unidade->und, str, nome);
-	x=54;
-	init(&nC);
+	x=50;
 	
-	gotoxy(x, y); printf("%d", y-2); x+=12;
+	gotoxy(x, y); printf("%d", y-2); x+=4;
 	gotoxy(x, y);
-	while (c != '\r' && c != 27) {
-		insere(&nC, c);
-		c = toupper(getche());
-	}
-	x=76;
-	while (nC != NULL) {
-		strcpy((*campos)->nomeCampo, toString(nC, 0));
+	gets(aux);
+	while (aux != NULL && strcmp(aux, "") != 0) {
+		x=72;
+		strcpy((*campos)->nomeCampo, aux);
 		gotoxy(x, y);
-		while (c != '\r' && c != 27) {
-			insere(&aux, c);
-			c = toupper(getche());
-		}
-		strAux = toString(aux, 0);
-		(*campos)->tipo = getTipo(strAux);
-		x=86;
-		gotoxy(x,y); scanf("%d", (*campos)->tamanho); x=92;
+		fflush(stdin);
+		gets(aux);
+		(*campos)->tipo = getTipo(aux);
+		x=82;
+		gotoxy(x,y); scanf("%d", &(*campos)->tamanho); x=90;
+		gotoxy(x,y); 
 		if ((*campos)->tipo == 'N') {
-			gotoxy(x,y); scanf("%d", (*campos)->dec);
+			scanf("%d", &(*campos)->dec);
 		}
 		else {
-			gotoxy(x,y); printf("0"); (*campos)->dec = 0;
+			printf("0"); (*campos)->dec = 0;
 		}
-		x=60; y++;
-		
-		reinicia(&nC);
-		gotoxy(x, y); printf("%d", y-2); x=64;
-		gotoxy(x, y); 
-		while (c != '\r' && c != 27) {
-			insere(&nC, c);
-			c = toupper(getche());
-		}
-		x=76;
+		x=50; y++;
+		gotoxy(x, y); printf("%d", y-2); x+=4;
+		gotoxy(x, y);
+		fflush(stdin);
+		gets(aux); 
 	}
+	clearCampos(50, 1, 100, 17);
 }
 
-void novoArq (TpUnd **unidade, StrDin *str, char *nome) {
+void novoArq (TpUnd **unidade, char *str, char *nome) {
 	TpArq *arq;
 	TpStatus *status;
 	TpCampos *campos;
@@ -222,15 +176,27 @@ void novoArq (TpUnd **unidade, StrDin *str, char *nome) {
 	inserirArq(&*unidade, &arq);
 }
 
+void dir (TpUnd *und, int *y) {
+	TpArq *arqs;
+	arqs = und->arqs;
+	
+	printf("\nDatabase Files\t# Records\t Last Update\t Size");
+	*y+=1;
+	while (arqs != NULL) {
+		gotoxy(1, *y); printf("                                            ");
+		gotoxy(1, *y); printf("%s\t0\t%s\t100", arqs->nome, arqs->data);
+		*y+=1;
+		arqs = arqs->prox;
+	}
+	*y+=1;
+}
+
 void execute () {
 	int key, x, y, yBar;
-	char c;
-	StrDin *inst;
-	char *nome;
+	char *inst, *nome;
 	TpUnd *unidade;
-	
+	inst = (char*)malloc(sizeof(50));
 	initUnd(&unidade);
-	init(&inst);
 	inserirUnd(&unidade, "D:");
 	inserirUnd(&unidade, "C:");
 	
@@ -243,12 +209,8 @@ void execute () {
 		x--;
 	
 		reinicia(&inst);
-		c = toupper(getche());
-		while (c != '\r') {
-			insere(&inst, c);
-			c = toupper(getche());
-		}
-		instruction(&inst, &key, &unidade, &nome);
+		gets(inst);
+		instruction(inst, &key, &unidade, &nome);
 		y++;
 		
 		switch (key) {
@@ -267,7 +229,7 @@ void execute () {
 				break;
 				
 			case 2: //dir
-				
+				dir(unidade, &y);
 				break;
 			
 			case 3: //quit
@@ -293,7 +255,6 @@ void execute () {
 			case 8: //clear
 				y=1;
 				clrscr();
-				reinicia(&inst);
 				defaultInst(&inst);
 				break;
 				

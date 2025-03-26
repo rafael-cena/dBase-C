@@ -37,7 +37,7 @@ typedef struct tparq TpArq;
 
 struct tpund {
 	struct tpund *ant, *prox;
-	char *und;
+	char und[3];
 	TpArq *arqs;
 };
 typedef struct tpund TpUnd;
@@ -77,7 +77,7 @@ void initDt (TpDados **dt) {
 	(*dt)->prox = NULL;
 }
 
-void inserirUnd (TpUnd **unidade, char *desc) {
+void inserirUnd (TpUnd **unidade, char desc[]) {
 	TpUnd *nova;
 	initUnd(&nova);
 	
@@ -105,10 +105,15 @@ void inserirArq (TpUnd **unidade, TpArq **arq) {
 }
 
 char getTipo (char *str) {
-	if (strcmp(str, "NUMERIC") == 0)
-		return 0;
-	return 1;
-	// fazer aq ó
+	if (stricmp(str, "NUMERIC") == 0)
+		return 'N';
+	if (stricmp(str, "DATE") == 0)
+		return 'D';
+	if (stricmp(str, "LOGICAL") == 0)
+		return 'L';
+	if (stricmp(str, "CHARACTER") == 0)
+		return 'C';
+	return 'M';
 }
 
 char *getData () {
