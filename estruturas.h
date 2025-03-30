@@ -28,7 +28,7 @@ struct status {
 typedef struct status Status;
 
 union tipo {
-	floar ValorN;
+	float valorN;
 	char valorD[10], valorL, valorC[50], valorM[50];
 };
 
@@ -70,28 +70,30 @@ void criaArquivo (Arquivo **arquivo, char *nome) {
 	}
 }
 
-void criaCampo (Campo **campo, char *FieldName, char Type, int Width, int Dec) {
-	*campo = (Campo*)malloc(sizeof(Campo));
+Campo* criaCampo (char *FieldName, char Type, int Width, int Dec) {
+	Campo *campo;
+	campo = (Campo*)malloc(sizeof(Campo));
 	
-	if (*campo != NULL) {
-		(*campo)->Patual = (*campo)->Pdados = NULL;
-		strcpy((*campo)->FieldName, FieldName);
-		(*campo)->Type = Type;
-		(*campo)->Width = Width;
-		(*campo)->Dec = Dec;
-		(*campo)->Prox = NULL;
+	if (campo != NULL) {
+		campo->Patual = campo->Pdados = NULL;
+		strcpy(campo->FieldName, FieldName);
+		campo->Type = Type;
+		campo->Width = Width;
+		campo->Dec = Dec;
+		campo->Prox = NULL;
 	}
+	return campo;
 }
 
-Status* criaStatus (char Status) {
-	Status *status;
-	status = (Status*)malloc(sizeof(Status));
+Status* criaStatus (char status) {
+	Status *novo;
+	novo = (Status*)malloc(sizeof(Status));
 	
-	if (status != NULL) {
-		status->Status = Status;
-		status->Prox = NULL;
+	if (novo != NULL) {
+		novo->Status = status;
+		novo->Prox = NULL;
 	}
-	return status;
+	return novo;
 }
 
 void criaDados (Dados **dados, union tipo valor, char Type) {
@@ -102,15 +104,15 @@ void criaDados (Dados **dados, union tipo valor, char Type) {
 		(*dados)->Prox = NULL;
 		
 		if (Type == 'N')
-			(*dados)->Valor.ValorN = valor.ValorN;
+			(*dados)->Valor.valorN = valor.valorN;
 		else if (Type == 'D')
-			strcpy((*dados)->Valor.ValorD, valor.ValorD);
+			strcpy((*dados)->Valor.valorD, valor.valorD);
 		else if (Type == 'L')
-			(*dados)->Valor.ValorL = valor.ValorL;
+			(*dados)->Valor.valorL = valor.valorL;
 		else if (Type == 'C')
-			strcpy((*dados)->Valor.ValorC, valor.ValorC);
+			strcpy((*dados)->Valor.valorC, valor.valorC);
 		else
-			strcpy((*dados)->Valor.ValorM, valor.ValorM);
+			strcpy((*dados)->Valor.valorM, valor.valorM);
 	}
 }
 
@@ -134,10 +136,10 @@ void insereCampo (Arquivo **arquivo, Campo *campo) {
 	if ((*arquivo)->Campos == NULL)
 		(*arquivo)->Campos = campo;
 	else {
-		aux = (*arquivos)->Campos;
+		aux = (*arquivo)->Campos;
 		while (aux->Prox != NULL)
 			aux = aux->Prox;
-
+		
 		aux->Prox = campo;
 	}
 }
@@ -155,3 +157,17 @@ void insereDados (Campo **campo, Dados *dados) {
 		(*campo)->Patual = dados;
 	}
 }
+
+void insereStatus (Arquivo **arquivo, Status *status) {
+	Status *aux;
+	if ((*arquivo)->Status == NULL) {
+		(*arquivo)->Status = status;
+	}
+	else {
+		aux = (*arquivo)->Status;
+		while (aux->Prox != NULL)
+			aux = aux->Prox;
+		aux->Prox = status;
+	}
+}
+

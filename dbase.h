@@ -1,12 +1,12 @@
 // SET DEFAULT 
 void setDefault (Unidade **unidade, char *str) {
 	if (stricmp(str, "SET DEFAULT TO C:") == 0) {
-		if (stricmp((*unidade)->und, "D:") == 0)
-			*unidade = (*unidade)->ant;
+		if (stricmp((*unidade)->Und, "D:") == 0)
+			*unidade = (*unidade)->Bottom;
 	}
 	else if (stricmp(str, "SET DEFAULT TO D:") == 0) {
-		if (stricmp((*unidade)->und, "C:") == 0)
-			*unidade = (*unidade)->prox;
+		if (stricmp((*unidade)->Und, "C:") == 0)
+			*unidade = (*unidade)->Top;
 	}
 }
 
@@ -16,8 +16,8 @@ void create (Unidade *unidade, char *nome) {
 	criaArquivo(&arquivo, nome);
 	
 	if (arquivo != NULL) {
-		arquivo->Campos = criaCampos();
-		arquivo->Status = criaStatus(1);
+		arquivo->Campos = criarCampos(&arquivo);
+		insereStatus(&arquivo, criaStatus(1));
 	}
 	else {
 		printf("Erro ao criar o arquivo!");
@@ -89,8 +89,8 @@ void listStructure (Unidade *unidade, Arquivo *arquivo) {
 		printf("Date of last update   : %s\n", arquivo->Data);
 		printf("Field  Field Name  Type  Width  Dec\n");
 		while (campo != NULL) {
-			printf("   %d \t%s \t%s \t%d \t%d\n", x, campo->FieldName, getType(campo->Type), campo->Width, campo->Dec);
-			x++;
+			printf("   %d \t%s \t%s \t%d \t%d\n", y, campo->FieldName, getType(campo->Type), campo->Width, campo->Dec);
+			y++;
 			size+=campo->Width;
 		}
 		printf("** Total ** \t\t%d\n", size);
@@ -109,7 +109,7 @@ void append (Arquivo *arquivo) {
 		dados = (Dados*)malloc(sizeof(Dados));
 		printf("\n%s\t", campo->FieldName);
 		if (campo->Type == 'N')
-			scanf("%f", &dados->Valor.valorF);
+			scanf("%f", &dados->Valor.valorN);
 		else if (campo->Type == 'D')
 			gets(dados->Valor.valorD);
 		else if (campo->Type == 'L')
@@ -137,7 +137,7 @@ void list (Arquivo *arquivo) {
 	campo = arquivo->Prox;
 	while (campo->Patual != NULL) {
 		if (campo->Type == 'N')
-			printf("%f\t", campo->Patual->Valor.valorF);
+			printf("%f\t", campo->Patual->Valor.valorN);
 		else if (campo->Type == 'D')
 			printf("%s\t", campo->Patual->Valor.valorD);
 		else if (campo->Type == 'L')
@@ -256,7 +256,7 @@ void display (Arquivo *arquivo) {
 	campo = arquivo->Prox;
 	while (campo != NULL) {
 		if (campo->Type == 'N')
-			printf("%f\t", campo->Patual->Valor.valorF);
+			printf("%f\t", campo->Patual->Valor.valorN);
 		else if (campo->Type == 'D')
 			printf("%s\t", campo->Patual->Valor.valorD);
 		else if (campo->Type == 'L')
@@ -281,8 +281,8 @@ void edit (Arquivo *arquivo) {
 		dados = campo->Patual;
 		
 		if (campo->Type == 'N') {
-			printf("%s[%f]\t", campo->FieldName, dados->Valor.ValorN);
-			scanf("%f", &dados->Valor.valorF);
+			printf("%s[%f]\t", campo->FieldName, dados->Valor.valorN);
+			scanf("%f", &dados->Valor.valorN);
 		}
 		else if (campo->Type == 'D') {
 			printf("\n%s[%s]\t", campo->FieldName, dados->Valor.valorD);

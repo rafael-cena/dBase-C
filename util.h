@@ -1,4 +1,6 @@
-char *getData () {
+#include "estruturas.h"
+
+char* getData () {
 	char *data;
 	int dia, mes, ano;
 	
@@ -29,7 +31,7 @@ char *getData () {
 	return data;
 }
 
-char *getHora () {
+char* getHora () {
 	char *hora;
 	int hr, min;
 	
@@ -54,6 +56,20 @@ char *getHora () {
 	return hora;
 }
 
+char *getType (char type) {
+	if (type == 'N') 
+		return "NUMERIC";
+	else if (type == 'D')
+		return "DATE";
+	else if (type == 'L')
+		return "LOGICAL";
+	else if (type == 'C')
+		return "CHARACTER";
+	else if (type == 'M')
+		return "MEMO";
+	return "TIPO INVÁLIDO";
+}
+
 int buscaSubstring(char str[], char inst[]) {
 	int i;
 	for (i=0; str[i] != '\0' && inst[i] != '\0' && i < strlen(inst); i++)
@@ -64,3 +80,52 @@ int buscaSubstring(char str[], char inst[]) {
 		return 0;
 	return -1;
 }
+
+Campo *criarCampos (Arquivo **arquivo) {
+	Campo *campo;
+	char *aux;
+	int i;
+	
+	i=1;
+	
+	aux = (char*)malloc(20);
+	
+	printf("   Field Name\tType \t Width\tDec\n");
+	printf("=================================================\n");
+	printf(" %d  ", i); i++;
+	gets(aux);
+	while (aux != NULL) {
+		campo = (Campo*)malloc(sizeof(Campo));
+		strcpy(aux, campo->FieldName);
+		printf("\t");
+		do {
+			gets(aux);
+			campo->Type = toupper(aux[0]);
+		} while (campo->Type != 'N' && campo->Type != 'D' && campo->Type != 'L' && campo->Type != 'C' && campo->Type != 'M');
+		
+		printf("\t");
+		scanf("%d", &campo->Width);
+		
+		printf("\t");
+		if (campo->Type == 'N') {
+			scanf("%d", &campo->Dec);
+		}
+		else {
+			campo->Dec = 0;
+			printf("%d", campo->Dec);
+		}
+		printf("\n");
+		
+		insereCampo(&(*arquivo), &campo);
+		
+		printf(" %d  ", i); i++;
+		gets(aux);
+	}
+	free(aux);
+}
+
+
+
+
+
+
