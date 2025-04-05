@@ -12,44 +12,71 @@ void setDefault (Unidade **unidade, char *str) {
 
 // CREATE
 void create (Unidade *unidade, char *nome) {
-	Arquivo *arquivo;
-	criaArquivo(&arquivo, nome);
+	Arquivo *arquivo, *aux;
 	
-	if (arquivo != NULL) {
-		arquivo->Campos = criarCampos(&arquivo, unidade->Und);
-		insereStatus(&arquivo, criaStatus(1));
+	if (strlen(nome) > 4) {
+		criaArquivo(&arquivo, nome);
+		
+		if (arquivo != NULL) {
+			criarCampos(&arquivo, unidade->Und);
+			insereStatus(&arquivo, criaStatus(1));
+			
+			if (unidade->Arqs == NULL)
+				unidade->Arqs = arquivo;
+			else {
+				aux = unidade->Arqs;
+				while (aux->Prox != NULL)
+					aux = aux->Prox;
+				aux->Prox = arquivo;
+			}
+		}
+		else {
+			printf("Erro ao criar o arquivo!");
+		}
 	}
 	else {
-		printf("Erro ao criar o arquivo!");
+		printf("O nome deve ser [NOME].DBF\n");
 	}
 }
 
 // DIR
-void dir (Unidade *unidade, int *y) {
-	int i, size;
+void dir (Unidade *unidade, int *y, int *yBar) {
+	int i, size, count;
 	Arquivo *arquivo;
 	Campo *campo;
 	Dados *dados;
 	arquivo = unidade->Arqs;
-	
-	printf("Database File\t # Records \t Last Update\t Size\n"); *y++;
-	while (arquivo != NULL) {
-		i = 1; size = 0;
-		campo = arquivo->Campos;
-		dados = campo->Pdados;
-		
-		while (campo != NULL ) {
-			size += campo->Width;
-			campo = campo->Prox;
-		}
-		while (dados != NULL) {
-			i++;
-			dados=dados->Prox;
-		}
-		printf("                                            ");
-		printf("%s \t\t%d \t%s \t%d\n", arquivo->NomeDBF, i, arquivo->Data, size*i); *y++;
+	count =0;
+	if (arquivo == NULL) {
+		gotoxy(1, *y); printf("Nenhum arquivo encontrado!\n");
+		*y+=1;
 	}
-	*y+=2;
+	else {
+		gotoxy(1, *y); printf("Database File\t # Records \t Last Update\t Size\n"); *y+=1;
+		while (arquivo != NULL) {
+			count++;
+			i = 1; size = 0;
+			campo = arquivo->Campos;
+			dados = campo->Pdados;
+			
+			while (campo != NULL ) {
+				size += campo->Width;
+				campo = campo->Prox;
+			}
+			while (dados != NULL) {
+				i++;
+				dados=dados->Prox;
+			}
+			gotoxy(1, *y); printf("                                                 ");
+			gotoxy(1, *y); printf("%s", arquivo->NomeDBF);
+			gotoxy(26, *y); printf("%d", i-1);
+			gotoxy(34, *y); printf("%s", arquivo->Data);
+			gotoxy(51, *y); printf("%d", size*i); *y+=1;
+			arquivo = arquivo->Prox;
+		}
+		*y+=2;
+	}
+	*yBar+=count;
 }
 
 // QUIT
@@ -58,6 +85,7 @@ void dir (Unidade *unidade, int *y) {
 // USE
 void use (Unidade *unidade, Arquivo **arquivo, char *nome) {
 	Arquivo *aux;
+	aux = NULL;
 	
 	if (unidade != NULL && unidade->Arqs != NULL) {
 		aux = unidade->Arqs;
@@ -66,35 +94,59 @@ void use (Unidade *unidade, Arquivo **arquivo, char *nome) {
 			aux = aux->Prox;
 	}
 	
-	if (aux != NULL && strcmp(aux->NomeDBF, nome) == 0) *arquivo = aux;
-	else *arquivo = NULL;
+	if (aux != NULL && strcmp(aux->NomeDBF, nome) == 0) {
+		*arquivo = aux;
+		printf("%s selecionado\n", nome);
+	}
+	else {
+		*arquivo = NULL;
+		printf("%s nao encontrado!\n", nome);
+	}
 }
 
 // LIST STRUCTURE
-void listStructure (Unidade *unidade, Arquivo *arquivo) {
+void listStructure (Unidade *unidade, Arquivo *arquivo, int *pos) {
 	Campo *campo;
 	Dados *dados;
 	int y, i, size;
 	y=1; i=size=0;
 	
-	campo = arquivo->Campos;
-	if (campo != NULL) {
-		dados = campo->Pdados;
-		while (dados != NULL) {
-			i++;
-			dados = dados->Prox;
+	if (arquivo != NULL) {
+		campo = arquivo->Campos;
+		if (campo != NULL) {
+			dados = campo->Pdados;
+			while (dados != NULL) {
+				i++;
+				dados = dados->Prox;
+			}
+			
+			gotoxy(1, *pos); printf("                                                                          ");
+			gotoxy(1, *pos); printf("Structure for database: %s%s\n", unidade->Und, arquivo->NomeDBF); *pos+=1;
+			gotoxy(1, *pos); printf("                                                                          ");
+			gotoxy(1, *pos); printf("Number of data records: %d\n", i); *pos+=1;
+			gotoxy(1, *pos); printf("                                                                          ");
+			gotoxy(1, *pos); printf("Date of last update   : %s\n", arquivo->Data); *pos+=1;
+			gotoxy(1, *pos); printf("                                                                          ");
+			gotoxy(1, *pos); printf("Field \tField Name \t\tType \t\tWidth  \tDec\n"); *pos+=1;
+			while (campo != NULL) {
+				gotoxy(1, *pos); printf("    %d", y);
+				gotoxy(9, *pos); printf("%s", campo->FieldName);
+				gotoxy(33, *pos); printf("%s", getType(campo->Type));
+				gotoxy(49, *pos); printf("%d", campo->Width);
+				gotoxy(57, *pos); printf("%d", campo->Dec);
+				
+				y++; *pos+=1;
+				size+=campo->Width;
+				campo = campo->Prox;
+			}
+			gotoxy(1, *pos); printf("** Total **"); 
+			gotoxy(49, *pos); printf("%d", size);
+			*pos+=1;
 		}
-		
-		printf("Structure for database: %s%s\n", unidade->Und, arquivo->NomeDBF);
-		printf("Number of data records: %d\n", i);
-		printf("Date of last update   : %s\n", arquivo->Data);
-		printf("Field  Field Name  Type  Width  Dec\n");
-		while (campo != NULL) {
-			printf("   %d \t%s \t%s \t%d \t%d\n", y, campo->FieldName, getType(campo->Type), campo->Width, campo->Dec);
-			y++;
-			size+=campo->Width;
-		}
-		printf("** Total ** \t\t%d\n", size);
+	}
+	else {
+		gotoxy(1, *pos); printf("                                                                          ");
+		gotoxy(1, *pos); printf("Selecione um arquivo [USE 'NOME.DBF']"); *pos+=1;
 	}
 }
 

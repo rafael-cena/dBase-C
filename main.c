@@ -8,7 +8,7 @@
 #include "estruturas.h"
 #include "dbase.h"
 
-void tela (int *x, int *y, int *yBar, char dir[], char inst[]) {
+void tela (int *x, int *y, int *yBar, char dir[], char inst[], Arquivo *arquivo) {
  	gotoxy(*x, *y);
  	printf(".");
  	gotoxy(*x, *yBar);
@@ -18,8 +18,11 @@ void tela (int *x, int *y, int *yBar, char dir[], char inst[]) {
  	gotoxy(1, *yBar);
  	textcolor(0);
  	textbackground(8);
- 	printf("%s\t||<%s>||\t||Rec: none", inst, dir);
- 	
+ 	printf("%s\t||<%s>||\t||Rec: ", inst, dir);
+ 	if (arquivo == NULL)
+ 		printf("none");
+ 	else 
+ 		printf("%s", arquivo->NomeDBF);
  	textcolor(15);
  	textbackground(0);
  	printf("\n\t\t\tEnter dBASE command");
@@ -36,21 +39,16 @@ void executar () {
 	criaUnidade(&unidade, "D:");
 	criaUnidade(&unidade, "C:");
 	instrucao = (char*)malloc(50);
-	strcpy(instrucao, "Command Line");
+	arquivo = NULL;
 	
 	do {
-		strcpy(instrucao, "Command Line");
-		tela(&x, &y, &yBar,unidade->Und,instrucao);
+		tela(&x, &y, &yBar,unidade->Und,"Command Line",arquivo);
 		x++; gotoxy(x, y); x--;
 		gets(instrucao);
 		getInstrucao(instrucao, &key);
 		y++;
 		
 		switch (key) {
-			case -1:
-				strcpy(instrucao, "Command Line");
-				break;
-
 			case 1:
 				setDefault(&unidade, instrucao);
 				break;
@@ -60,7 +58,7 @@ void executar () {
 				break;
 				
 			case 3:
-				dir(unidade, &y);
+				dir(unidade, &y, &yBar);
 				break;
 				
 			case 4:
@@ -69,10 +67,11 @@ void executar () {
 			
 			case 5:
 				use(unidade, &arquivo, getNome(instrucao, "USE"));
+				y+=1;
 				break;
 				
 			case 6:
-				listStructure(unidade, arquivo);
+				listStructure(unidade, arquivo, &y);
 				break;
 			
 			case 7:

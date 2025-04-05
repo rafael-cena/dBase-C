@@ -98,6 +98,7 @@ void getInstrucao (char *instrucao, int *key) {
 	else if (buscaSubstring(instrucao, "SET DELETED") != -1) *key = 16;
 	else if (stricmp(instrucao, "PACK") == 0) *key = 17;
 	else if (stricmp(instrucao, "ZAP") == 0) *key = 18;
+	else *key = -1;
 }
 
 char* getField (char *str, char *instrucao) {
@@ -137,12 +138,12 @@ void telaCampos (int *y, char dir[], char inst[], char *nome) {
  	int x;
  	x=54;
  	*y=1;
- 	gotoxy(x, *y); printf("Field Name"); x=72;
- 	gotoxy(x, *y); printf("Type"); x=80;
- 	gotoxy(x, *y); printf("Width"); x=88;
+ 	gotoxy(x, *y); printf("Field Name"); x=73;
+ 	gotoxy(x, *y); printf("Type"); x=81;
+ 	gotoxy(x, *y); printf("Width"); x=89;
  	gotoxy(x, *y); printf("Dec"); *y+=1;
  	x=54;
- 	while (x < 90) {
+ 	while (x < 93) {
  		gotoxy(x, *y); printf("%c", 205); x+=1;
  	}
  	*y+=1;

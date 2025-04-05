@@ -171,7 +171,7 @@ void insereStatus (Arquivo **arquivo, Status *status) {
 	}
 }
 
-Campo *criarCampos (Arquivo **arquivo, char *und) {
+void criarCampos (Arquivo **arquivo, char *und) {
 	Campo *campo;
 	char *aux;
 	int i;
@@ -183,9 +183,11 @@ Campo *criarCampos (Arquivo **arquivo, char *und) {
 	gotoxy(50, i); printf(" %d  ", i-3);
 	gotoxy(54, i); fflush(stdin); strcpy(aux, ""); gets(aux);
 	
-	while (aux != NULL) {
+	while (aux != NULL && strcmp(aux, "") != 0) {
 		campo = (Campo*)malloc(sizeof(Campo));
-		strcpy(aux, campo->FieldName);
+		campo->Patual = campo->Pdados = NULL;
+		campo->Prox = NULL;
+		strcpy(campo->FieldName, aux);
 		do {
 			gotoxy(72, i);
 			fflush(stdin); gets(aux);
@@ -193,10 +195,10 @@ Campo *criarCampos (Arquivo **arquivo, char *und) {
 		} while (campo->Type != 'N' && campo->Type != 'D' && campo->Type != 'L' && campo->Type != 'C' && campo->Type != 'M');
 		
 		
-		gotoxy(80, i);
+		gotoxy(84, i);
 		scanf("%d", &campo->Width);
 		
-		gotoxy(88, i);
+		gotoxy(91, i);
 		if (campo->Type == 'N') {
 			scanf("%d", &campo->Dec);
 		}
@@ -206,10 +208,10 @@ Campo *criarCampos (Arquivo **arquivo, char *und) {
 		}
 		
 		insereCampo(&(*arquivo), campo);
+		
 		i++; gotoxy(50, i); printf(" %d  ", i-3);
 		gotoxy(54, i); fflush(stdin); strcpy(aux, ""); gets(aux);
 	}
-	free(aux);
 }
 
 void getContent (char instrucao[], union tipo *Content, char type) {
