@@ -17,7 +17,7 @@ struct campo {
 	struct dados *Patual, *Pdados;
 	char FieldName[16], Type;
 	int Width, Dec;
-	struct campos *Prox;
+	struct campo *Prox;
 };
 typedef struct campo Campo;
 
@@ -171,3 +171,63 @@ void insereStatus (Arquivo **arquivo, Status *status) {
 	}
 }
 
+Campo *criarCampos (Arquivo **arquivo, char *und) {
+	Campo *campo;
+	char *aux;
+	int i;
+	i=1;
+	aux = (char*)malloc(20);
+	
+	telaCampos(&i, und, "CREATE", (*arquivo)->NomeDBF);
+	i++;
+	gotoxy(50, i); printf(" %d  ", i-3);
+	gotoxy(54, i); fflush(stdin); strcpy(aux, ""); gets(aux);
+	
+	while (aux != NULL) {
+		campo = (Campo*)malloc(sizeof(Campo));
+		strcpy(aux, campo->FieldName);
+		do {
+			gotoxy(72, i);
+			fflush(stdin); gets(aux);
+			campo->Type = toupper(aux[0]);
+		} while (campo->Type != 'N' && campo->Type != 'D' && campo->Type != 'L' && campo->Type != 'C' && campo->Type != 'M');
+		
+		
+		gotoxy(80, i);
+		scanf("%d", &campo->Width);
+		
+		gotoxy(88, i);
+		if (campo->Type == 'N') {
+			scanf("%d", &campo->Dec);
+		}
+		else {
+			campo->Dec = 0;
+			printf("%d", campo->Dec);
+		}
+		
+		insereCampo(&(*arquivo), campo);
+		i++; gotoxy(50, i); printf(" %d  ", i-3);
+		gotoxy(54, i); fflush(stdin); strcpy(aux, ""); gets(aux);
+	}
+	free(aux);
+}
+
+void getContent (char instrucao[], union tipo *Content, char type) {
+	char aux[50];
+	int i, j;
+	
+	for (i=0; instrucao[i] != '\0' && instrucao[i] != '='; i++);
+	for (i=i+2, j=0; instrucao[i] != '\0'; i++, j++)
+		aux[j] = instrucao[i];
+	
+	if (type == 'N')
+		(*Content).valorN = atof(aux);
+	else if (type == 'D')
+		strcpy((*Content).valorD, aux);
+	else if (type == 'L')
+		(*Content).valorL = aux[0];
+	else if (type == 'C')
+		strcpy((*Content).valorC, aux);
+	else if (type == 'M')
+		strcpy((*Content).valorM, aux);
+}

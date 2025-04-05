@@ -1,5 +1,3 @@
-#include "estruturas.h"
-
 char* getData () {
 	char *data;
 	int dia, mes, ano;
@@ -10,7 +8,7 @@ char* getData () {
 	time(&segundos);
 	date = localtime(&segundos);
 	
-	data = (char*)malloc(sizeof(11));
+	data = (char*)malloc(11);
 	
 	dia = date->tm_mday;
 	mes = date->tm_mon + 1;
@@ -41,7 +39,7 @@ char* getHora () {
 	time(&segundos);
 	date = localtime(&segundos);
 	
-	hora = (char*)malloc(sizeof(6));
+	hora = (char*)malloc(6);
 	
 	hr = date->tm_hour;
 	min = date->tm_min;
@@ -76,56 +74,93 @@ int buscaSubstring(char str[], char inst[]) {
 		if (str[i] != inst[i])
 			return -1;
 	
-	if (inst[i] == '\0' && str[i] == ' ' && i == strlen(inst))
-		return 0;
+	if (inst[i] == '\0' && (str[i] == ' ' || str[i] == '\0') && i == strlen(inst))
+		return i;
 	return -1;
 }
 
-Campo *criarCampos (Arquivo **arquivo) {
-	Campo *campo;
-	char *aux;
-	int i;
-	
-	i=1;
-	
-	aux = (char*)malloc(20);
-	
-	printf("   Field Name\tType \t Width\tDec\n");
-	printf("=================================================\n");
-	printf(" %d  ", i); i++;
-	gets(aux);
-	while (aux != NULL) {
-		campo = (Campo*)malloc(sizeof(Campo));
-		strcpy(aux, campo->FieldName);
-		printf("\t");
-		do {
-			gets(aux);
-			campo->Type = toupper(aux[0]);
-		} while (campo->Type != 'N' && campo->Type != 'D' && campo->Type != 'L' && campo->Type != 'C' && campo->Type != 'M');
-		
-		printf("\t");
-		scanf("%d", &campo->Width);
-		
-		printf("\t");
-		if (campo->Type == 'N') {
-			scanf("%d", &campo->Dec);
-		}
-		else {
-			campo->Dec = 0;
-			printf("%d", campo->Dec);
-		}
-		printf("\n");
-		
-		insereCampo(&(*arquivo), &campo);
-		
-		printf(" %d  ", i); i++;
-		gets(aux);
-	}
-	free(aux);
+void getInstrucao (char *instrucao, int *key) {
+	if (buscaSubstring(instrucao, "SET DEFAULT TO") != -1) *key = 1;
+	else if (buscaSubstring(instrucao, "CREATE") != -1) *key = 2;
+	else if (stricmp(instrucao, "DIR") == 0) *key = 3;
+	else if (stricmp(instrucao, "QUIT") == 0) *key = 4;
+	else if (buscaSubstring(instrucao, "USE") != -1) *key = 5;
+	else if (stricmp(instrucao, "LIST STRUCTURE") == 0) *key = 6;
+	else if (stricmp(instrucao, "APPEND") == 0) *key = 7;
+	else if (buscaSubstring(instrucao, "LIST") != -1) *key = 8;
+	else if (stricmp(instrucao, "CLEAR") == 0) *key = 9;
+	else if (buscaSubstring(instrucao, "LOCATE") != -1) *key = 10;
+	else if (buscaSubstring(instrucao, "GOTO") != -1) *key = 11;
+	else if (stricmp(instrucao, "DISPLAY") == 0) *key = 12;
+	else if (stricmp(instrucao, "EDIT") == 0) *key = 13;
+	else if (stricmp(instrucao, "DELETE") == 0) *key = 14;
+	else if (buscaSubstring(instrucao, "RECALL") != -1) *key = 15;
+	else if (buscaSubstring(instrucao, "SET DELETED") != -1) *key = 16;
+	else if (stricmp(instrucao, "PACK") == 0) *key = 17;
+	else if (stricmp(instrucao, "ZAP") == 0) *key = 18;
 }
 
+char* getField (char *str, char *instrucao) {
+	char *aux;
+	int i, j=0;
+	aux = (char*)malloc(20);
+	for (i=strlen(instrucao)+5; str[i] != ' '; i++, j++)
+		aux[j] = str[i];
+	
+	return aux;
+}
 
+int getPos (char str[], char instrucao[]) {
+	char aux[4];
+	int i, j=0;
+	
+	for (i = strlen(instrucao)+1; str[i] != '\0'; i++)
+		aux[j] = str[i];
+		
+	return atoi(aux);
+}
 
+char* getNome (char *str, char *instrucao) {
+	char *aux;
+	int i, j;
+	
+	i = strlen(str)-strlen(instrucao) + 1;
+	aux = (char*)malloc(i);
+	for (i=strlen(instrucao)+1, j=0; str[i] != '\0'; i++, j++) {
+		aux[j] = str[i];
+	}
+	aux[j]='\0';
+	return aux;
+}
 
-
-
+void telaCampos (int *y, char dir[], char inst[], char *nome) {
+ 	int x;
+ 	x=54;
+ 	*y=1;
+ 	gotoxy(x, *y); printf("Field Name"); x=72;
+ 	gotoxy(x, *y); printf("Type"); x=80;
+ 	gotoxy(x, *y); printf("Width"); x=88;
+ 	gotoxy(x, *y); printf("Dec"); *y+=1;
+ 	x=54;
+ 	while (x < 90) {
+ 		gotoxy(x, *y); printf("%c", 205); x+=1;
+ 	}
+ 	*y+=1;
+ 	x=50;
+ 	
+ 	gotoxy(x, 14);
+ 	textcolor(0);
+ 	textbackground(8);
+ 	while (x < 86) {
+ 		gotoxy(x, 14); printf(" "); x+=1;
+ 	}
+ 	x=50;
+ 	gotoxy(x, 14); x+=14;
+ 	printf("%s\t\t||<%s>||%s", inst, dir, nome);
+ 	x+=strlen(nome);
+ 	printf("      ");
+ 	
+ 	textcolor(15);
+ 	textbackground(0);
+ 	gotoxy(x, 15); printf("Enter the field");
+}

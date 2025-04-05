@@ -16,7 +16,7 @@ void create (Unidade *unidade, char *nome) {
 	criaArquivo(&arquivo, nome);
 	
 	if (arquivo != NULL) {
-		arquivo->Campos = criarCampos(&arquivo);
+		arquivo->Campos = criarCampos(&arquivo, unidade->Und);
 		insereStatus(&arquivo, criaStatus(1));
 	}
 	else {
@@ -25,14 +25,14 @@ void create (Unidade *unidade, char *nome) {
 }
 
 // DIR
-void dir (Unidade *unidade) {
+void dir (Unidade *unidade, int *y) {
 	int i, size;
 	Arquivo *arquivo;
 	Campo *campo;
 	Dados *dados;
 	arquivo = unidade->Arqs;
 	
-	printf("Database File\t # Records \t Last Update\t Size\n");
+	printf("Database File\t # Records \t Last Update\t Size\n"); *y++;
 	while (arquivo != NULL) {
 		i = 1; size = 0;
 		campo = arquivo->Campos;
@@ -46,9 +46,10 @@ void dir (Unidade *unidade) {
 			i++;
 			dados=dados->Prox;
 		}
-		
-		printf("%s \t\t%d \t%s \t%d\n", arquivo->NomeDBF, i, arquivo->Data, size*i);
+		printf("                                            ");
+		printf("%s \t\t%d \t%s \t%d\n", arquivo->NomeDBF, i, arquivo->Data, size*i); *y++;
 	}
+	*y+=2;
 }
 
 // QUIT
@@ -134,7 +135,7 @@ void list (Arquivo *arquivo) {
 		campo->Patual = campo->Pdados;
 		campo = campo->Prox;
 	}
-	campo = arquivo->Prox;
+	campo = arquivo->Campos;
 	while (campo->Patual != NULL) {
 		if (campo->Type == 'N')
 			printf("%f\t", campo->Patual->Valor.valorN);
@@ -157,12 +158,14 @@ void clear() {
 }
 
 // LOCATE
-void locate (Arquivo *arquivo, char *Field, union tipo Content, int *pos) {
+void locate (Arquivo *arquivo, char *Field, char instrucao[]) {
 	Campo *campo;
 	Dados *dados;
+	union tipo Content;
+	int pos;
 	
 	campo = arquivo->Campos;
-	*pos = -1;
+	pos = -1;
 	while (campo != NULL && strcmp(campo->FieldName, Field) != 0)
 		campo = campo->Prox;
 	
@@ -170,58 +173,68 @@ void locate (Arquivo *arquivo, char *Field, union tipo Content, int *pos) {
 		dados = campo->Pdados;
 		
 		if (campo->Type == 'N') {
+			getContent(instrucao, &Content, 'N');
 			while (dados != NULL && dados->Valor.valorN != Content.valorN) {
-				*pos++;
+				pos++;
 				dados = dados->Prox;
 			}
 			if (dados != NULL)
-				*pos++;
+				pos++;
 			else 
-				*pos = -1;
+				pos = -1;
 		}
 		else if (campo->Type == 'D') {
+			getContent(instrucao, &Content, 'D');
 			while (dados != NULL && strcmp(dados->Valor.valorD, Content.valorD) != 0) {
-				*pos++;
+				pos++;
 				dados = dados->Prox;
 			}
 			if (dados != NULL)
-				*pos++;
+				pos++;
 			else 
-				*pos = -1;
+				pos = -1;
 		}
 		else if (campo->Type == 'L') {
+			getContent(instrucao, &Content, 'L');
 			while (dados != NULL && dados->Valor.valorL != Content.valorL) {
-				*pos++;
+				pos++;
 				dados = dados->Prox;
 			}
 			if (dados != NULL)
-				*pos++;
+				pos++;
 			else 
-				*pos = -1;
+				pos = -1;
 		}
 		else if (campo->Type == 'C') {
+			getContent(instrucao, &Content, 'C');
 			while (dados != NULL && strcmp(dados->Valor.valorC, Content.valorC) != 0) {
-				*pos++;
+				pos++;
 				dados = dados->Prox;
 			}
 			if (dados != NULL)
-				*pos++;
+				pos++;
 			else 
-				*pos = -1;
+				pos = -1;
 		}
 		else {
+			getContent(instrucao, &Content, 'M');
 			while (dados != NULL && strcmp(dados->Valor.valorM, Content.valorM) != 0) {
-				*pos++;
+				pos++;
 				dados = dados->Prox;
 			}
 			if (dados != NULL)
-				*pos++;
+				pos++;
 			else 
-				*pos = -1;
+				pos = -1;
 		}
 	}
 	else
-		*pos = -1;
+		pos = -1;
+		
+	if (pos == -1)
+		printf("\nNenhum registro encontrado!");
+	else 
+		printf("\nRecord = \t %d", pos);
 }
 
 // GOTO
@@ -253,7 +266,7 @@ void display (Arquivo *arquivo) {
 		campo->Patual = campo->Pdados;
 		campo = campo->Prox;
 	}
-	campo = arquivo->Prox;
+	campo = arquivo->Campos;
 	while (campo != NULL) {
 		if (campo->Type == 'N')
 			printf("%f\t", campo->Patual->Valor.valorN);
@@ -310,6 +323,7 @@ void edit (Arquivo *arquivo) {
 void delete_reg (Arquivo *arquivo) {
 	Campo *campo;
 	
+	campo = arquivo->Campos;
 	while (campo != NULL) {
 		campo->Patual->setDelet = 1;
 		campo = campo->Prox;
