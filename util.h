@@ -107,7 +107,7 @@ char* getField (char *str, char *instrucao) {
 	aux = (char*)malloc(20);
 	for (i=strlen(instrucao)+5; str[i] != ' '; i++, j++)
 		aux[j] = str[i];
-	
+	aux[j] = '\0';
 	return aux;
 }
 
@@ -117,7 +117,7 @@ int getPos (char str[], char instrucao[]) {
 	
 	for (i = strlen(instrucao)+1; str[i] != '\0'; i++)
 		aux[j] = str[i];
-		
+	aux[j+1] = '\0';
 	return atoi(aux);
 }
 

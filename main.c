@@ -9,6 +9,11 @@
 #include "dbase.h"
 
 void tela (int *x, int *y, int *yBar, char dir[], char inst[], Arquivo *arquivo) {
+ 	int total,i;
+ 	Dados *dados;
+ 	total=i=0;
+	gotoxy(*x, *y);
+ 	printf("                                                     ");
  	gotoxy(*x, *y);
  	printf(".");
  	gotoxy(*x, *yBar);
@@ -18,12 +23,26 @@ void tela (int *x, int *y, int *yBar, char dir[], char inst[], Arquivo *arquivo)
  	gotoxy(1, *yBar);
  	textcolor(0);
  	textbackground(8);
- 	printf("%s\t||<%s>||\t||Rec: ", inst, dir);
  	if (arquivo == NULL)
- 		printf("none");
- 	else 
- 		printf("%s", arquivo->NomeDBF);
- 	textcolor(15);
+ 		printf("%s\t||<%s>||\t||Rec: none", inst, dir);
+	else {
+		dados = arquivo->Campos->Pdados;
+		while (dados != NULL && dados != arquivo->Campos->Patual) {
+			i++;
+			total++;
+			dados = dados->Prox;
+		}
+		if (dados != NULL) {
+			while (dados != NULL) {
+				total++;
+				dados = dados->Prox;
+			}
+			printf("%s\t||<%s>||%s\t||Rec: %d/%d", inst, dir, arquivo->NomeDBF, i+1, total);
+		}
+		else
+			printf("%s\t||<%s>||%s\t||Rec: EOF/%d", inst, dir, arquivo->NomeDBF, total);
+ 	}
+	textcolor(15);
  	textbackground(0);
  	printf("\n\t\t\tEnter dBASE command");
 }
@@ -51,6 +70,7 @@ void executar () {
 		switch (key) {
 			case 1:
 				setDefault(&unidade, instrucao);
+				arquivo = NULL;
 				break;
 				
 			case 2:
@@ -75,11 +95,11 @@ void executar () {
 				break;
 			
 			case 7:
-				append(arquivo);
+				append(arquivo, &y);
 				break;
 			
 			case 8:
-				list(arquivo);
+				list(arquivo, &y, &yBar);
 				break;
 			
 			case 9:
@@ -89,6 +109,7 @@ void executar () {
 				
 			case 10:
 				locate(arquivo, getField(instrucao, "LOCATE"), instrucao);
+				y+=1;
 				break;
 				
 			case 11:
@@ -96,7 +117,7 @@ void executar () {
 				break;
 			
 			case 12:
-				display(arquivo);
+				display(arquivo, &y, &yBar);
 				break;
 			
 			case 13:

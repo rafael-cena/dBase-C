@@ -150,6 +150,7 @@ void insereDados (Campo **campo, Dados *dados) {
 		(*campo)->Patual = dados;
 	} 
 	else {
+		(*campo)->Patual = (*campo)->Pdados;
 		while ((*campo)->Patual->Prox != NULL)
 			(*campo)->Patual = (*campo)->Patual->Prox;
 			
