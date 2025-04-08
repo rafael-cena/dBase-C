@@ -64,7 +64,8 @@ void dir (Unidade *unidade, int *y, int *yBar) {
 				campo = campo->Prox;
 			}
 			while (dados != NULL) {
-				i++;
+				if (!dados->setDelet)
+					i++;
 				dados=dados->Prox;
 			}
 			gotoxy(1, *y); printf("                                                 ");
@@ -116,7 +117,8 @@ void listStructure (Unidade *unidade, Arquivo *arquivo, int *pos) {
 		if (campo != NULL) {
 			dados = campo->Pdados;
 			while (dados != NULL) {
-				i++;
+				if (!dados->setDelet)
+					i++;
 				dados = dados->Prox;
 			}
 			
@@ -197,46 +199,62 @@ void list (Arquivo *arquivo, int *pos, int *yBar) {
 	
 	if (arquivo != NULL) {
 		campo = arquivo->Campos;
-		//	exibe cabecalho
-		x=17;
-		gotoxy(1, *pos); printf("Record#");
-		while (campo != NULL) {
-			gotoxy(x, *pos);
-			printf("%s", campo->FieldName);
-			x+=campo->Width;
-			campo->Patual = campo->Pdados;
-			campo = campo->Prox;
+		//	se o arquivo estiver vazio
+		if (campo->Pdados == NULL) {
+			gotoxy(1, *pos); printf("Nenhum registro encontrado!                                                  "); *pos+=1;
 		}
-		*yBar+=1;
-		*pos+=1;
-		//	exibe dados
-		campo = arquivo->Campos;
-		while (campo->Patual != NULL) {
-			gotoxy(1, *pos);
-			printf("      %d                                                                                ", i);
+		else {
+			//	exibe cabecalho
 			x=17;
+			gotoxy(1, *pos); printf("Record#");
 			while (campo != NULL) {
 				gotoxy(x, *pos);
-				if (campo->Type == 'N')
-					printf("%f\t", campo->Patual->Valor.valorN);
-				else if (campo->Type == 'D')
-					printf("%s\t", campo->Patual->Valor.valorD);
-				else if (campo->Type == 'L')
-					if (campo->Patual->Valor.valorL) printf("TRUE\t");
-					else printf("FALSE\t");
-				else if (campo->Type == 'C')
-					printf("%s\t", campo->Patual->Valor.valorC);
-				else
-					printf("%s\t", campo->Patual->Valor.valorM);
-				
+				printf("%s", campo->FieldName);
 				x+=campo->Width;
-				campo->Patual = campo->Patual->Prox;
+				campo->Patual = campo->Pdados;
 				campo = campo->Prox;
 			}
-			*pos+=1;
-			i++;
-			campo = arquivo->Campos;
 			*yBar+=1;
+			*pos+=1;
+			
+			//	exibe dados
+			campo = arquivo->Campos;
+			while (campo->Patual != NULL) {
+				if (!campo->Patual->setDelet) {
+					gotoxy(1, *pos);
+					printf("      %d                                                                                ", i);
+					x=17;
+					while (campo != NULL) {
+						gotoxy(x, *pos);
+						if (campo->Type == 'N')
+							printf("%f\t", campo->Patual->Valor.valorN);
+						else if (campo->Type == 'D')
+							printf("%s\t", campo->Patual->Valor.valorD);
+						else if (campo->Type == 'L')
+							if (campo->Patual->Valor.valorL) printf("TRUE\t");
+							else printf("FALSE\t");
+						else if (campo->Type == 'C')
+							printf("%s\t", campo->Patual->Valor.valorC);
+						else
+							printf("%s\t", campo->Patual->Valor.valorM);
+						
+						x+=campo->Width;
+						campo->Patual = campo->Patual->Prox;
+						campo = campo->Prox;
+					}
+					*pos+=1;
+					i++;
+					
+					*yBar+=1;
+				}
+				else {
+					while (campo != NULL) {
+						campo->Patual = campo->Patual->Prox;
+						campo = campo->Prox;
+					}
+				}
+				campo = arquivo->Campos;
+			}
 		}
 	}
 	else {
@@ -273,7 +291,7 @@ void locate (Arquivo *arquivo, char *Field, char instrucao[]) {
 				pos++;
 				dados = dados->Prox;
 			}
-			if (dados != NULL)
+			if (dados != NULL && !dados->setDelet)
 				pos++;
 			else 
 				pos = -1;
@@ -284,7 +302,7 @@ void locate (Arquivo *arquivo, char *Field, char instrucao[]) {
 				pos++;
 				dados = dados->Prox;
 			}
-			if (dados != NULL)
+			if (dados != NULL && !dados->setDelet)
 				pos++;
 			else 
 				pos = -1;
@@ -295,7 +313,7 @@ void locate (Arquivo *arquivo, char *Field, char instrucao[]) {
 				pos++;
 				dados = dados->Prox;
 			}
-			if (dados != NULL)
+			if (dados != NULL && !dados->setDelet)
 				pos++;
 			else 
 				pos = -1;
@@ -306,7 +324,7 @@ void locate (Arquivo *arquivo, char *Field, char instrucao[]) {
 				pos++;
 				dados = dados->Prox;
 			}
-			if (dados != NULL)
+			if (dados != NULL && !dados->setDelet)
 				pos++;
 			else 
 				pos = -1;
@@ -317,7 +335,7 @@ void locate (Arquivo *arquivo, char *Field, char instrucao[]) {
 				pos++;
 				dados = dados->Prox;
 			}
-			if (dados != NULL)
+			if (dados != NULL && !dados->setDelet)
 				pos++;
 			else 
 				pos = -1;
@@ -342,8 +360,11 @@ void go_to (Arquivo *arquivo, int go) {
 	while (campo != NULL) {
 		campo->Patual = campo->Pdados;
 		
-		for (i=1;i<go;i++)
+		for (i=1;i<go;i++) {
 			campo->Patual = campo->Patual->Prox;
+			if (campo->Patual->setDelet)
+				campo->Patual = campo->Patual->Prox;
+		}
 		
 		campo=campo->Prox;
 	}
@@ -378,27 +399,29 @@ void display (Arquivo *arquivo, int *pos, int *yBar) {
 		
 		//	exibe dados
 		campo = arquivo->Campos;
-		gotoxy(1, *pos);
-		printf("      %d                                                                                ", i);
-		x=17;
-		while (campo != NULL) {
-			gotoxy(x, *pos);
-			if (campo->Type == 'N')
-				printf("%f\t", campo->Patual->Valor.valorN);
-			else if (campo->Type == 'D')
-				printf("%s\t", campo->Patual->Valor.valorD);
-			else if (campo->Type == 'L')
-				if (campo->Patual->Valor.valorL) printf("TRUE\t");
-				else printf("FALSE\t");
-			else if (campo->Type == 'C')
-				printf("%s\t", campo->Patual->Valor.valorC);
-			else
-				printf("%s\t", campo->Patual->Valor.valorM);
-			
-			x+=campo->Width;
-			campo = campo->Prox;
+		if (!campo->Patual->setDelet) {
+			gotoxy(1, *pos);
+			printf("      %d                                                                                ", i);
+			x=17;
+			while (campo != NULL) {
+				gotoxy(x, *pos);
+				if (campo->Type == 'N')
+					printf("%f\t", campo->Patual->Valor.valorN);
+				else if (campo->Type == 'D')
+					printf("%s\t", campo->Patual->Valor.valorD);
+				else if (campo->Type == 'L')
+					if (campo->Patual->Valor.valorL) printf("TRUE\t");
+					else printf("FALSE\t");
+				else if (campo->Type == 'C')
+					printf("%s\t", campo->Patual->Valor.valorC);
+				else
+					printf("%s\t", campo->Patual->Valor.valorM);
+				
+				x+=campo->Width;
+				campo = campo->Prox;
+			}
+			*pos+=1;
 		}
-		*pos+=1;
 	}
 	else {
 		gotoxy(1, *pos); printf("                                                                          ");
@@ -409,64 +432,90 @@ void display (Arquivo *arquivo, int *pos, int *yBar) {
 }
 
 // EDIT
-void edit (Arquivo *arquivo) {
+void edit (Arquivo *arquivo, int *pos) {
 	Campo *campo;
 	union tipo valor;
 	Dados *dados;
+	int y=1;
 	
-	campo = arquivo->Campos;
-	while (campo != NULL) {
-		dados = campo->Patual;
-		
-		if (campo->Type == 'N') {
-			printf("%s[%f]\t", campo->FieldName, dados->Valor.valorN);
-			scanf("%f", &dados->Valor.valorN);
-		}
-		else if (campo->Type == 'D') {
-			printf("\n%s[%s]\t", campo->FieldName, dados->Valor.valorD);
-			gets(dados->Valor.valorD);
-		}
-		else if (campo->Type == 'L') {
-			if (dados->Valor.valorL) 
-				printf("\n%s[TRUE-1]\t", campo->FieldName);
-			else
-				printf("\n%s[FALSE-0]\t", campo->FieldName);
-			scanf("%c", &dados->Valor.valorL); 
-		}
-		else if (campo->Type == 'C') {
-			printf("\n%s[%s]\t", campo->FieldName, dados->Valor.valorC);
-			gets(dados->Valor.valorC);
-		}
+	if (arquivo != NULL) {
+		campo = arquivo->Campos;
+		if (campo->Patual != NULL && !campo->Patual->setDelet)
+			while (campo != NULL) {
+				dados = campo->Patual;
+				gotoxy(60, y);
+				if (campo->Type == 'N') {
+					printf("%s[%f]\t", campo->FieldName, dados->Valor.valorN);
+					scanf("%f", &dados->Valor.valorN);
+				}
+				else if (campo->Type == 'D') {
+					printf("%s[%s]\t", campo->FieldName, dados->Valor.valorD);
+					gets(dados->Valor.valorD);
+				}
+				else if (campo->Type == 'L') {
+					if (dados->Valor.valorL) 
+						printf("%s[TRUE-1]\t", campo->FieldName);
+					else
+						printf("%s[FALSE-0]\t", campo->FieldName);
+					scanf("%c", &dados->Valor.valorL); 
+				}
+				else if (campo->Type == 'C') {
+					printf("%s[%s]\t", campo->FieldName, dados->Valor.valorC);
+					gets(dados->Valor.valorC);
+				}
+				else {
+					printf("%s[%s]\t", campo->FieldName, dados->Valor.valorM);
+					gets(dados->Valor.valorM);
+				}
+				
+				y++;
+				campo = campo->Prox;
+			}
 		else {
-			printf("\n%s[%s]\t", campo->FieldName, dados->Valor.valorM);
-			gets(dados->Valor.valorM);
+			gotoxy(1, *pos); printf("                                                                          ");
+			gotoxy(1, *pos); printf("Selecione um registro para alterar [GOTO 1]"); *pos+=1;
 		}
+	}
+	else {
+		gotoxy(1, *pos); printf("                                                                          ");
+		gotoxy(1, *pos); printf("Selecione um arquivo [USE 'NOME.DBF']"); *pos+=1;
+		*pos+=1;
 	}
 }
 
 // DELETE
-void delete_reg (Arquivo *arquivo) {
+void delete_reg (Arquivo *arquivo, int *pos) {
 	Campo *campo;
 	
 	campo = arquivo->Campos;
-	while (campo != NULL) {
-		campo->Patual->setDelet = 1;
-		campo = campo->Prox;
+	if (campo->Patual != NULL)
+		while (campo != NULL) {
+			campo->Patual->setDelet = 1;
+			campo = campo->Prox;
+		}
+	else {
+		*pos+=1;
+		printf("\nEscolha um registro [GOTO 1]                                                              ");
 	}
 }
 
 // RECALL
-void recall (Arquivo *arquivo, char str[], char setDeleted) {
+void recall (Arquivo *arquivo, char str[], char setDeleted, int *pos) {
 	Campo *campo;
 	Dados *dados;
 	
-	if (setDeleted) {
+	if (!setDeleted) {
 		if (strcmp(str, "RECALL") == 0) {
 			campo = arquivo->Campos;
 			
-			while (campo!=NULL) {
-				campo->Patual->setDelet = 0;
-				campo = campo->Prox;
+			if (campo->Patual != NULL) 
+				while (campo!=NULL) {
+					campo->Patual->setDelet = 0;
+					campo = campo->Prox;
+				}
+			else {
+				printf("\nEscolha um registro [GOTO 1]                                                       ");
+				*pos+=1;
 			}
 		}
 		else {
@@ -525,7 +574,7 @@ void pack (Arquivo *arquivo) {
 
 // ZAP
 void zap (Arquivo *arquivo) {
-	Campo *campo, *auxC;
+	Campo *campo;
 	Dados *dados, *auxD;
 	
 	campo = arquivo->Campos;
@@ -538,8 +587,7 @@ void zap (Arquivo *arquivo) {
 			free(auxD);
 		}
 		
-		auxC = campo;
+		campo->Patual = campo->Pdados = NULL;
 		campo = campo->Prox;
-		free(auxC);
 	}
 }

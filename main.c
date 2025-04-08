@@ -28,13 +28,16 @@ void tela (int *x, int *y, int *yBar, char dir[], char inst[], Arquivo *arquivo)
 	else {
 		dados = arquivo->Campos->Pdados;
 		while (dados != NULL && dados != arquivo->Campos->Patual) {
-			i++;
-			total++;
+			if (!dados->setDelet) {
+				i++;
+				total++;
+			}
 			dados = dados->Prox;
 		}
 		if (dados != NULL) {
 			while (dados != NULL) {
-				total++;
+				if (!dados->setDelet)
+					total++;
 				dados = dados->Prox;
 			}
 			printf("%s\t||<%s>||%s\t||Rec: %d/%d", inst, dir, arquivo->NomeDBF, i+1, total);
@@ -121,15 +124,15 @@ void executar () {
 				break;
 			
 			case 13:
-				edit(arquivo);
+				edit(arquivo, &y);
 				break;
 				
 			case 14:
-				delete_reg(arquivo);
+				delete_reg(arquivo, &y);
 				break;
 				
 			case 15:
-				recall(arquivo, instrucao, setDel);
+				recall(arquivo, instrucao, setDel, &y);
 				break;
 				
 			case 16:
