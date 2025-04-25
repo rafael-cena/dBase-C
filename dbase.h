@@ -9,7 +9,7 @@ void setDefault (Unidade **unidade, char *str) {
 			*unidade = (*unidade)->Top;
 	}
 }
-
+ 
 // CREATE
 void create (Unidade *unidade, char *nome) {
 	Arquivo *arquivo, *aux;
@@ -577,17 +577,19 @@ void zap (Arquivo *arquivo) {
 	Campo *campo;
 	Dados *dados, *auxD;
 	
-	campo = arquivo->Campos;
-	while (campo!=NULL) {
-		dados = campo->Pdados;
-		
-		while (dados!=NULL) {
-			auxD = dados;
-			dados = dados->Prox;
-			free(auxD);
+	if (arquivo != NULL) {
+		campo = arquivo->Campos;
+		while (campo!=NULL) {
+			dados = campo->Pdados;
+			
+			while (dados!=NULL) {
+				auxD = dados;
+				dados = dados->Prox;
+				free(auxD);
+			}
+			
+			campo->Patual = campo->Pdados = NULL;
+			campo = campo->Prox;
 		}
-		
-		campo->Patual = campo->Pdados = NULL;
-		campo = campo->Prox;
 	}
 }

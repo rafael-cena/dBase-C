@@ -28,7 +28,7 @@ char* getData () {
 	
 	return data;
 }
-
+ 
 char* getHora () {
 	char *hora;
 	int hr, min;
@@ -65,7 +65,7 @@ char *getType (char type) {
 		return "CHARACTER";
 	else if (type == 'M')
 		return "MEMO";
-	return "TIPO INVÁLIDO";
+	return "TIPO INVï¿½LIDO";
 }
 
 int buscaSubstring(char str[], char inst[]) {

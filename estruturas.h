@@ -4,7 +4,7 @@ struct unidade {
 	struct arquivo *Arqs;
 };
 typedef struct unidade Unidade;
-
+ 
 struct arquivo {
 	struct arquivo *Ant, *Prox;
 	char NomeDBF[50], Data[11], Hora[6];
